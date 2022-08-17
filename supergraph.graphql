@@ -1,0 +1,183 @@
+
+schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.2", for: EXECUTION)
+{
+  query: Query
+  mutation: Mutation
+}
+
+directive @join__field(graph: join__Graph!, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+scalar Date
+  @join__type(graph: FAUNA)
+
+scalar join__FieldSet
+
+enum join__Graph {
+  FAUNA @join__graph(name: "fauna", url: "https://graphql.us.fauna.com/graphql")
+  LOCATIONS @join__graph(name: "locations", url: "https://flyby-locations-sub.herokuapp.com/")
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+type Location
+  @join__type(graph: LOCATIONS, key: "id")
+{
+  id: ID!
+
+  """The name of the location"""
+  name: String!
+
+  """A short description about the location"""
+  description: String!
+
+  """The location's main photo as a URL"""
+  photo: String!
+}
+
+scalar Long
+  @join__type(graph: FAUNA)
+
+type Mutation
+  @join__type(graph: FAUNA)
+{
+  updateShop(id: ID!, data: ShopInput!): Shop
+  deleteShop(id: ID!): Shop
+  partialUpdateShop(id: ID!, data: PartialUpdateShopInput!): Shop
+  createProduct(data: ProductInput!): Product!
+  updateProduct(id: ID!, data: ProductInput!): Product
+  partialUpdateProduct(id: ID!, data: PartialUpdateProductInput!): Product
+  createShop(data: ShopInput!): Shop!
+  deleteProduct(id: ID!): Product
+}
+
+input PartialUpdateProductInput
+  @join__type(graph: FAUNA)
+{
+  name: String
+  description: String
+  price: Float
+  category: String
+  imageUrl: String
+  shop: ProductShopRelation
+}
+
+input PartialUpdateShopInput
+  @join__type(graph: FAUNA)
+{
+  name: String
+  description: String
+  coverImg: String
+  products: ShopProductsRelation
+  ownerID: String
+}
+
+type Product
+  @join__type(graph: FAUNA)
+{
+  shop: Shop!
+  name: String!
+  description: String!
+  _id: ID!
+  price: Float!
+  category: String!
+  imageUrl: String
+  _ts: Long!
+}
+
+input ProductInput
+  @join__type(graph: FAUNA)
+{
+  name: String!
+  description: String!
+  price: Float!
+  category: String!
+  imageUrl: String
+  shop: ProductShopRelation
+}
+
+type ProductPage
+  @join__type(graph: FAUNA)
+{
+  data: [Product]!
+  after: String
+  before: String
+}
+
+input ProductShopRelation
+  @join__type(graph: FAUNA)
+{
+  create: ShopInput
+  connect: ID
+}
+
+type Query
+  @join__type(graph: FAUNA)
+  @join__type(graph: LOCATIONS)
+{
+  findProductByID(id: ID!): Product @join__field(graph: FAUNA)
+  findShopByID(id: ID!): Shop @join__field(graph: FAUNA)
+  products(_size: Int, _cursor: String): ProductPage! @join__field(graph: FAUNA)
+
+  """
+  The full list of locations presented by the Interplanetary Space Tourism department
+  """
+  locations: [Location!]! @join__field(graph: LOCATIONS)
+
+  """The details of a specific location"""
+  location(id: ID!): Location @join__field(graph: LOCATIONS)
+}
+
+type Shop
+  @join__type(graph: FAUNA)
+{
+  name: String!
+  description: String!
+  _id: ID!
+  products(_size: Int, _cursor: String): ProductPage!
+  ownerID: String!
+  coverImg: String!
+  _ts: Long!
+}
+
+input ShopInput
+  @join__type(graph: FAUNA)
+{
+  name: String!
+  description: String!
+  coverImg: String!
+  products: ShopProductsRelation
+  ownerID: String!
+}
+
+input ShopProductsRelation
+  @join__type(graph: FAUNA)
+{
+  create: [ProductInput]
+  connect: [ID]
+  disconnect: [ID]
+}
+
+scalar Time
+  @join__type(graph: FAUNA)

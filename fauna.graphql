@@ -1,0 +1,210 @@
+directive @embedded on OBJECT
+
+directive @collection(name: String!) on OBJECT
+
+directive @index(name: String!) on FIELD_DEFINITION
+
+directive @resolver(
+  name: String
+  paginated: Boolean! = false
+) on FIELD_DEFINITION
+
+directive @relation(name: String) on FIELD_DEFINITION
+
+directive @unique(index: String) on FIELD_DEFINITION
+
+scalar Date
+
+type Mutation {
+  # Update an existing document in the collection of 'Shop'
+  updateShop(
+    # The 'Shop' document's ID
+    id: ID!
+
+    # 'Shop' input values
+    data: ShopInput!
+  ): Shop
+
+  # Delete an existing document in the collection of 'Shop'
+  deleteShop(
+    # The 'Shop' document's ID
+    id: ID!
+  ): Shop
+
+  # Partially updates an existing document in the collection of 'Shop'. It only modifies the values that are specified in the arguments. During execution, it verifies that required fields are not set to 'null'.
+  partialUpdateShop(
+    # The 'Shop' document's ID
+    id: ID!
+
+    # 'Shop' input values
+    data: PartialUpdateShopInput!
+  ): Shop
+
+  # Create a new document in the collection of 'Product'
+  createProduct(
+    # 'Product' input values
+    data: ProductInput!
+  ): Product!
+
+  # Update an existing document in the collection of 'Product'
+  updateProduct(
+    # The 'Product' document's ID
+    id: ID!
+
+    # 'Product' input values
+    data: ProductInput!
+  ): Product
+
+  # Partially updates an existing document in the collection of 'Product'. It only modifies the values that are specified in the arguments. During execution, it verifies that required fields are not set to 'null'.
+  partialUpdateProduct(
+    # The 'Product' document's ID
+    id: ID!
+
+    # 'Product' input values
+    data: PartialUpdateProductInput!
+  ): Product
+
+  # Create a new document in the collection of 'Shop'
+  createShop(
+    # 'Shop' input values
+    data: ShopInput!
+  ): Shop!
+
+  # Delete an existing document in the collection of 'Product'
+  deleteProduct(
+    # The 'Product' document's ID
+    id: ID!
+  ): Product
+}
+
+# 'Product' input values
+input PartialUpdateProductInput {
+  name: String
+  description: String
+  price: Float
+  category: String
+  imageUrl: String
+  shop: ProductShopRelation
+}
+
+# 'Shop' input values
+input PartialUpdateShopInput {
+  name: String
+  description: String
+  coverImg: String
+  products: ShopProductsRelation
+  ownerID: String
+}
+
+# 'Product' input values
+input ProductInput {
+  name: String!
+  description: String!
+  price: Float!
+  category: String!
+  imageUrl: String
+  shop: ProductShopRelation
+}
+
+# Allow manipulating the relationship between the types 'Product' and 'Shop' using the field 'Product.shop'.
+input ProductShopRelation {
+  # Create a document of type 'Shop' and associate it with the current document.
+  create: ShopInput
+
+  # Connect a document of type 'Shop' with the current document using its ID.
+  connect: ID
+}
+
+# 'Shop' input values
+input ShopInput {
+  name: String!
+  description: String!
+  coverImg: String!
+  products: ShopProductsRelation
+  ownerID: String!
+}
+
+# Allow manipulating the relationship between the types 'Shop' and 'Product'.
+input ShopProductsRelation {
+  # Create one or more documents of type 'Product' and associate them with the current document.
+  create: [ProductInput]
+
+  # Connect one or more documents of type 'Product' with the current document using their IDs.
+  connect: [ID]
+
+  # Disconnect the given documents of type 'Product' from the current document using their IDs.
+  disconnect: [ID]
+}
+
+scalar Time
+
+type Product {
+  shop: Shop!
+  name: String!
+  description: String!
+
+  # The document's ID.
+  _id: ID!
+  price: Float!
+  category: String!
+  imageUrl: String
+
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# The pagination object for elements of type 'Product'.
+type ProductPage {
+  # The elements of type 'Product' in this page.
+  data: [Product]!
+
+  # A cursor for elements coming after the current page.
+  after: String
+
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+type Query {
+  # Find a document from the collection of 'Product' by its id.
+  findProductByID(
+    # The 'Product' document's ID
+    id: ID!
+  ): Product
+
+  # Find a document from the collection of 'Shop' by its id.
+  findShopByID(
+    # The 'Shop' document's ID
+    id: ID!
+  ): Shop
+  products(
+    # The number of items to return per page.
+    _size: Int
+
+    # The pagination cursor.
+    _cursor: String
+  ): ProductPage!
+}
+
+type Shop {
+  name: String!
+  description: String!
+
+  # The document's ID.
+  _id: ID!
+  products(
+    # The number of items to return per page.
+    _size: Int
+
+    # The pagination cursor.
+    _cursor: String
+  ): ProductPage!
+  ownerID: String!
+  coverImg: String!
+
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# The `Long` scalar type represents non-fractional signed whole numeric values. Long can represent values between -(2^63) and 2^63 - 1.
+scalar Long

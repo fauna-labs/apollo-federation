@@ -1,0 +1,10 @@
+federation_version: 2
+subgraphs:
+  fauna:
+    routing_url: https://graphql.us.fauna.com/graphql
+    schema:
+      file: ./fauna.graphql
+  locations:
+    routing_url: https://flyby-locations-sub.herokuapp.com/
+    schema:
+      subgraph_url: https://flyby-locations-sub.herokuapp.com/
